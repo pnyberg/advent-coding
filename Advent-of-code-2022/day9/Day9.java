@@ -12,12 +12,17 @@ public class Day9 {
 		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 
 		try {
+			// setup snake
 			ArrayList<Point> snake = new ArrayList<>();
 			int numPoints = 10;
 			for(int i = 0; i < numPoints; i++) {
 				snake.add(new Point(0, 0));
 			}
-			ArrayList<Point> tailPositions = new ArrayList<>();
+
+			// setup set
+			Set<Point> uniqueTailPositions = new HashSet<>();
+			uniqueTailPositions.add(snake.get(numPoints - 1));
+
 			while(true) {
 				String line = in.readLine();
 				if(line == null) {
@@ -26,6 +31,7 @@ public class Day9 {
 
 				char direction	= line.charAt(0);
 				int steps		= Integer.parseInt(line.substring(2));
+				SNAKE:
 				for(int i = 0; i < steps; i++) {
 					Point head = snake.get(0);
 
@@ -42,17 +48,21 @@ public class Day9 {
 
 					// move tail
 					for(int k = 1; k < snake.size(); k++) {
-						snake.get(k).moveAdjacent(snake.get(k - 1));
+						boolean moved = snake.get(k).moveAdjacent(snake.get(k - 1));
+						if(!moved) {
+							// if this part didn't move, no parts after will either
+							//  there is also no point in adding the point to the set
+							continue SNAKE;
+						}
 					}
 
 					// store tail-position
 					Point tail = snake.get(numPoints - 1);
-					tailPositions.add(new Point(tail.x, tail.y));
+					uniqueTailPositions.add(new Point(tail.x, tail.y));
 				}
 			}
 
-			Set<Point> uniqueTailPositions = new HashSet<>(tailPositions);
-			System.out.println(uniqueTailPositions.size() + " " + tailPositions.size());
+			System.out.println(uniqueTailPositions.size());
 		} catch(IOException e) {
 			// ignore
 		}
@@ -79,10 +89,10 @@ class Point {
 		return this.x + 1000 * this.y;
 	}
 
-	public void moveAdjacent(Point p) {
+	public boolean moveAdjacent(Point p) {
 		if(Math.abs(p.x - x) <= 1 && Math.abs(p.y - y) <= 1) {
 			// movement not necessary
-			return;
+			return false;
 		}
 
 		if(p.x == x) {
@@ -112,5 +122,6 @@ class Point {
 				x--;
 			}
 		}
+		return true;
 	}
 }
